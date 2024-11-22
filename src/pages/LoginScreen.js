@@ -20,8 +20,6 @@ const LoginScreen = () => {
       try {
         const storedToken = await AsyncStorage.getItem('');
         if (storedToken != null) {
-          console.log('Token encontrado no AsyncStorage:', storedToken);
-          // Se o token está armazenado, navegue para o perfil
           navigation.navigate('User', { token: storedToken });
         }
       } catch (error) {
