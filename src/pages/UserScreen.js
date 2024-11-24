@@ -5,6 +5,7 @@ import Card from '../components/Card';
 import styles from '../style/styleuser';
 import FooterNavigation from '../components/FooterNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 const UserScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -22,43 +23,44 @@ const UserScreen = ({ route }) => {
     }
   };
 
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        const response = await fetch('http://10.1.188.98:8080/profiles/select', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`, // Passa o token no header
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json(); // Recebe os dados da API
-          const enrichedProfiles = data.map((profile) => ({
-            ...profile,
-            image: require('../../assets/icons/capsula.png'),
-            bio: `Perfil de ${profile.name}`,
-            medications: [],
-          }));
-          setProfiles(enrichedProfiles);
-        } else {
-          const errorMessage = await response.text();
-          console.error('Erro ao buscar perfis:', errorMessage);
-          Alert.alert('Erro', `Erro ao buscar perfis: ${errorMessage}`);
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchProfiles = async () => {
+        try {
+          const response = await fetch('http://192.168.18.149:8080/profiles/select', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          });
+  
+          if (response.ok) {
+            const data = await response.json();
+            const enrichedProfiles = data.map((profile) => ({
+              ...profile,
+              image: require('../../assets/icons/capsula.png'),
+              bio: `Perfil de ${profile.name}`,
+              medications: [],
+            }));
+            setProfiles(enrichedProfiles);
+          } else {
+            const errorMessage = await response.text();
+            Alert.alert('Erro', `Erro ao buscar perfis: ${errorMessage}`);
+          }
+        } catch (error) {
+          Alert.alert('Erro', 'Não foi possível carregar os perfis.');
         }
-      } catch (error) {
-        console.error('Erro ao buscar perfis:', error);
-        Alert.alert('Erro', 'Não foi possível carregar os perfis.');
-      }
-    };
-
-    if (token) fetchProfiles();
-  }, [token]);
+      };
+  
+      fetchProfiles();
+    }, [token])
+  );
+  
 
   const selectProfile = async (profileId) => {
     try {
-      const response = await fetch(`http://10.1.188.98:8080/profiles/select/${profileId}`, {
+      const response = await fetch(`http://192.168.18.149:8080/profiles/select/${profileId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,6 +123,14 @@ const UserScreen = ({ route }) => {
         onPress={() => navigation.navigate('AddUser')}
       >
         <Text style={styles.addButtonText}>Adicionar perfil</Text>
+      </TouchableOpacity>
+
+      {/* Botão para editar perfil */}
+      <TouchableOpacity
+        style={styles.editProfileButton}
+        onPress={() => navigation.navigate('EditProfileScreen', { token })}
+      >
+        <Text style={styles.editProfileButtonText}>Editar perfil</Text>
       </TouchableOpacity>
 
       <FooterNavigation />
